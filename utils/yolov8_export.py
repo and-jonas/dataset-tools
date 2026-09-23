@@ -44,6 +44,7 @@ class YOLOKeypointAnnotationWriter(YOLOAnnotationWriter):
         labels_map_rev,
         dynamic_classes=False,
         include_confidence=False,
+        **kwargs,
     ):
         """Writes the detections to disk.
         Args:

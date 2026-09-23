@@ -169,7 +169,7 @@ def yolopose2mask(data_src: str , export_dst: str):
 
 # List all relevant CVAT datasets
 # Iterate dataset exports to thematical batches based on a desired train / val strategy
-BASE_DIR = Path(r"O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/03_CANOPY_PROXIMAL_SYMPTOMS/dataset_src")
+BASE_DIR = Path(r"O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/03_CANOPY_PROXIMAL_SYMPTOMS/iter2/dataset_src")
 src_directory = BASE_DIR / "src"
 directories = [d for d in src_directory.iterdir() if d.is_dir()]
 
@@ -179,6 +179,6 @@ for directory in directories:
         data_src=str(directory), 
         export_dst=str(BASE_DIR / "segmentations_export"),
         id_mapping={2: 'Necrosis', 3: 'PhysicalDamage', 4:'PowderyMildew'})
-    # cvat2yolopose(str(directory), str(BASE_DIR / "keypoints_export"), image_size=(1024, 1024))
+    cvat2yolopose(str(directory), str(BASE_DIR / "keypoints_export"), image_size=(1024, 1024))
 
 # Do a train / val split

@@ -17,9 +17,9 @@ src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jon
 exp_IDs = ["CHWW001", "PreDiMix"]
 loc_IDs = ["Uitikon", "Eschikon", "02_CHWW001"]
 
-# select only batches 1-6
+# select only batches 1-9
 dirs = [d for d in src_directory.iterdir() if d.is_dir()]
-dirs = [p for p in dirs if p.name in {f"batch{i}" for i in range(1, 7)}]
+dirs = [p for p in dirs if p.name in {f"batch{i}" for i in range(1, 10)}]
 
 # helper for datetime extraction from source image path
 def extract_datetime_original(file_path: Path) -> str:
@@ -93,17 +93,20 @@ for d in dirs:
             raise ValueError(f"No valid date found in line: '{line}'")
         date = date_matches[0]
 
-        # Plot: find 8-digit number in the final directory level, then take its last 5 digits
+        # Plot: find a number of varying length ending in 4 digits
         final_dir = path.parent.name
-        plot_matches = re.findall(r"\b\d{8}\b", final_dir)
+        plot_matches = re.findall(r"\b[A-Za-z0-9]+\d{4}\b", final_dir)
+
         if not plot_matches:
             if 'O' in final_dir or 'o' in final_dir:
                 alternative = final_dir.replace('O', '0').replace('o', '0')
                 print(f"Possible 0/O confusion: {final_dir}  ->  {alternative}")
-                plot_matches = re.findall(r"\b\d{8}\b", alternative)
+                plot_matches = re.findall(r"\b[A-Za-z0-9]+\d{4}\b", alternative)
+
         if not plot_matches:
-            raise ValueError(f"No 8-digit plot ID found in final directory: '{final_dir}'")
-        plot = plot_matches[-1][-5:]
+            raise ValueError(f"No numeric plot ID found in final directory: '{final_dir}'")
+
+        plot = plot_matches[-1][-4:]
 
         # image name
         image_name = path.name
@@ -124,7 +127,7 @@ for d in dirs:
 
 
 # Write to CSV
-output_file = src_directory / "meta" / "source_filtered_batch1-6.csv"
+output_file = src_directory / "meta" / "source_filtered_batch1-9.csv"
 with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
     fieldnames = ["full_path", "experiment_name", "location_name", "date", "time_of_day", "harvest_year", "plot", "image_name"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -208,9 +211,9 @@ all.to_csv(src_directory / "meta" / "designs.csv", index=False)
 # Merge source metadata with experimental designs
 # ------------------------------------------------------------------------------------------
 
-source = pd.read_csv(src_directory / "meta" / "source_filtered_batch1-6.csv", 
+source = pd.read_csv(src_directory / "meta" / "source_filtered_batch1-9.csv", 
                      dtype={"plot": "Int64"})
 source["location_name"] = source["location_name"].str.strip().str.casefold()
 result = source.merge(all, how="left", 
                       on=["plot", "harvest_year", "experiment_name", "location_name"])
-result.to_csv(src_directory / "meta" / "merged_metadata.csv", index=False)
+result.to_csv(src_directory / "meta" / "merged_metadata_batch1-9.csv", index=False)
