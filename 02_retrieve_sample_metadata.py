@@ -17,9 +17,9 @@ src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jon
 exp_IDs = ["CHWW001", "PreDiMix"]
 loc_IDs = ["Uitikon", "Eschikon", "02_CHWW001"]
 
-# select only batches 1-9
+# select only batches 1-9, 11-14
 dirs = [d for d in src_directory.iterdir() if d.is_dir()]
-dirs = [p for p in dirs if p.name in {f"batch{i}" for i in range(1, 10)}]
+dirs = [p for p in dirs if p.name in {f"batch{i}" for i in list(range(1, 10)) + list(range(11, 15))}]
 
 # helper for datetime extraction from source image path
 def extract_datetime_original(file_path: Path) -> str:
@@ -127,7 +127,7 @@ for d in dirs:
 
 
 # Write to CSV
-output_file = src_directory / "meta" / "source_filtered_batch1-9.csv"
+output_file = src_directory / "meta" / "source_filtered_batch1-9_11-14.csv"
 with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
     fieldnames = ["full_path", "experiment_name", "location_name", "date", "time_of_day", "harvest_year", "plot", "image_name"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -211,9 +211,9 @@ all.to_csv(src_directory / "meta" / "designs.csv", index=False)
 # Merge source metadata with experimental designs
 # ------------------------------------------------------------------------------------------
 
-source = pd.read_csv(src_directory / "meta" / "source_filtered_batch1-9.csv", 
+source = pd.read_csv(src_directory / "meta" / "source_filtered_batch1-9_11-14.csv", 
                      dtype={"plot": "Int64"})
 source["location_name"] = source["location_name"].str.strip().str.casefold()
 result = source.merge(all, how="left", 
                       on=["plot", "harvest_year", "experiment_name", "location_name"])
-result.to_csv(src_directory / "meta" / "merged_metadata_batch1-9.csv", index=False)
+result.to_csv(src_directory / "meta" / "merged_metadata_batch1-9_11-14.csv", index=False)
