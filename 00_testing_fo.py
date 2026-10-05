@@ -52,7 +52,7 @@ session = fo.launch_app(dataset)
 
 # KEYPOINTS ==========================================================================================
 
-dataset_dir = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/20_Datasets_train/ZenklEtAl2026/EFDv2_segmentation")
+dataset_dir = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/20_Datasets_train/ZenklEtAl2026/EFDv2_keypoint")
 
 # load data set
 if "symptoms_dataset" in fo.list_datasets():
@@ -60,7 +60,7 @@ if "symptoms_dataset" in fo.list_datasets():
 dataset = load_dl_dataset(
     root_dir=dataset_dir,
     name="symptoms_dataset",
-    type="seg"
+    type="kpt"
     )
 
 one_sample = dataset.first()

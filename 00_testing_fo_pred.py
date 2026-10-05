@@ -40,13 +40,13 @@ pred_dir = Path(
 # LOAD DATASET
 # =====================================================================
 
+# load segmentation predictions dataset
 dataset = load_segmentation_predictions(
     image_dir=image_dir,
     gt_dir=gt_dir,
     pred_dir=pred_dir,
     name="symptoms_predictions",
 )
-
 
 print(dataset)
 print(f"Number of samples: {len(dataset)}")

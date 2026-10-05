@@ -104,6 +104,7 @@ def cvat2yolopose(
     print("append 'kpt_shape: [1,3]' to dataset.yaml")
     print("append 'val: ./images/val/' to datase.yaml")
 
+# transform keypoints to masks
 def yolopose2mask(data_src: str , export_dst: str):
     labels_path = Path(data_src) / 'labels'
     data_path = Path(data_src) / 'images'
@@ -167,6 +168,7 @@ def yolopose2mask(data_src: str , export_dst: str):
         export_filepath = export_path / (str(label.stem) + '.png')
         cv2.imwrite(str(export_filepath), mask)
 
+# export SYMPTOMS data set
 # List all relevant CVAT datasets
 # Iterate dataset exports to thematical batches based on a desired train / val strategy
 BASE_DIR = Path(r"O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/03_CANOPY_PROXIMAL_SYMPTOMS/iter2/dataset_src")
@@ -182,3 +184,24 @@ for directory in directories:
     cvat2yolopose(str(directory), str(BASE_DIR / "keypoints_export"), image_size=(1024, 1024))
 
 # Do a train / val split
+
+# ======================================================================================================
+
+# export FOCUS data set
+# List all relevant CVAT datasets
+# Iterate dataset exports to thematical batches based on a desired train / val strategy
+BASE_DIR = Path(r"O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/05_CANOPY_PROXIMAL_FOCUS/dataset_src")
+src_directory = BASE_DIR / "src"
+directories = [d for d in src_directory.iterdir() if d.is_dir()]
+
+# export normal
+for directory in directories:
+    cvat2masks(
+        data_src=str(directory), 
+        export_dst=str(BASE_DIR / "segmentations_export"),
+        id_mapping={1: 'in_focus'}
+    )
+
+# Do a train / val split
+
+======================================================================================================
