@@ -204,4 +204,15 @@ for directory in directories:
 
 # Do a train / val split
 
-======================================================================================================
+src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/04_DL_datasets_updates/symptoms")
+metadata = pd.read_csv(src_directory / "meta" / "merged_metadata_batch1-9_11-14.csv", dtype={"plot": "Int64"})
+
+val_set, train_set, metadata_split = split_dataset(
+    metadata,
+    val_fraction=0.2,
+    strategy="group",
+    group_column=["genotype_name"],
+    val_groups=None,
+)
+
+# ======================================================================================================

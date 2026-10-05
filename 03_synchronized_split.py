@@ -2,6 +2,8 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import shutil
+from tqdm import tqdm
 
 def split_dataset(
     metadata,
@@ -15,19 +17,29 @@ def split_dataset(
     df = metadata.copy()
     rng = np.random.default_rng(seed)
 
-    if strategy != "group":
-        raise ValueError("Only strategy='group' is supported.")
+    # if strategy != "group":
+    #     raise ValueError("Only strategy='group' is supported.")
 
     if isinstance(group_column, list):
-        if len(group_column) != 1:
+        if len(group_column) > 1:
             raise ValueError("Only one grouping column is supported.")
         group_column = group_column[0]
+
+    # =========================================================
+    # RANDOM SPLIT
+    # =========================================================
+
+    if strategy == "random":
+        n_val = max(1, round(len(df) * val_fraction))
+        val_indices = rng.choice(df.index, size=n_val, replace=False)
+        df["split"] = "train"
+        df.loc[val_indices, "split"] = "val"
 
     # =========================================================
     # GENOTYPE
     # =========================================================
 
-    if group_column == "genotype_name":
+    elif group_column == "genotype_name":
 
         # Genotypes actually present in each image
         sample_genotypes = df.apply(
@@ -247,13 +259,70 @@ def split_dataset(
     return val_set, train_set, df
 
 
-src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/04_DL_datasets_updates/symptoms")
-metadata = pd.read_csv(src_directory / "meta" / "merged_metadata_batch1-9_11-14.csv", dtype={"plot": "Int64"})
+def apply_split(src, dst, val_samples, train_samples):
+    src = Path(src)
+    dst = Path(dst)
+
+    if not src.is_dir():
+        raise ValueError(f"Source directory '{src}' does not exist.")
+
+    if not dst.exists():
+        dst.mkdir(parents=True, exist_ok=True)
+
+    image_prefix = "data"
+    mask_prefix = "labels"
+
+    for set_name, set in zip(["train", "val"], [train_samples, val_samples]):
+        
+        # Copy the files
+        for sample in tqdm(set, desc=f"Copying {set_name} samples"):
+            image_path = Path(src) / Path(image_prefix) / Path(sample)
+            if not image_path.exists():
+                raise Exception("File {} does not exist".format(str(image_path)))
+
+            mask_path = Path(src) / Path(mask_prefix) / Path(sample)
+            if not mask_path.exists():
+                raise Exception("File {} does not exist".format(str(mask_path)))
+
+            # Copy to given location train set
+            dst_img = Path(dst) / Path(set_name) / Path(image_prefix) / Path(sample)
+            dst_mask = Path(dst) / Path(set_name) / Path(mask_prefix) / Path(sample)
+
+            dst_img.parent.mkdir(parents=True, exist_ok=True)
+            dst_mask.parent.mkdir(parents=True, exist_ok=True)
+
+            shutil.copy(str(image_path), str(dst_img))
+            shutil.copy(str(mask_path), str(dst_mask))
+
+      
+# # split SYMPTOMS dataset
+# src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/04_DL_datasets_updates/symptoms")
+# metadata = pd.read_csv(src_directory / "meta" / "merged_metadata_batch1-9_11-14.csv", dtype={"plot": "Int64"})
+
+# val_set, train_set, metadata_split = split_dataset(
+#     metadata,
+#     val_fraction=0.2,
+#     strategy="group",
+#     group_column=["genotype_name"],
+#     val_groups=None,
+# )
+
+# split FOCUS dataset
+src_directory = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/04_DL_datasets_updates/focus")
+metadata = pd.read_csv(src_directory / "meta" / "merged_metadata.csv", dtype={"plot": "Int64"})
 
 val_set, train_set, metadata_split = split_dataset(
     metadata,
     val_fraction=0.2,
-    strategy="group",
-    group_column=["genotype_name"],
+    strategy="random",
+    group_column=None,
     val_groups=None,
 )
+
+val_samples = [Path(sample).stem + ".png" for sample in val_set]
+train_samples = [Path(sample).stem + ".png" for sample in train_set]
+
+export_src_root = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/05_CANOPY_PROXIMAL_FOCUS/dataset_src/segmentations_export")
+split_dst_root = Path("O:/Data-Work/22_Plant_Production-CH/224_Digitalisation/Jonas_Anderegg_Files/B_Data/01_DL_Datasets/20_Datasets_train/Focus")
+
+apply_split(export_src_root, split_dst_root, val_samples, train_samples)
